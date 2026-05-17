@@ -16,16 +16,18 @@ public class Controller(Valve hotValve, Valve coldValve, float recommendedTemp)
 
     public static float CalculateMixTemperature(Valve valve1, Valve valve2)
     {
-        float totalOpen = valve1.Open + valve2.Open;
+        float flow1 = valve1.Open * valve1.Pressure;
+        float flow2 = valve2.Open * valve2.Pressure;
+        float totalFlow = flow1 + flow2;
 
-        if (totalOpen <= 0) 
+        if (totalFlow <= 0) 
         {
             return 0; 
         }
 
-        float weightedTemperature = (valve1.Open * valve1.Temperature) + (valve2.Open * valve2.Temperature);
+        float weightedTemperature = (flow1 * valve1.Temperature) + (flow2 * valve2.Temperature);
     
-        return weightedTemperature / totalOpen;
+        return weightedTemperature / totalFlow;
     }
 
     public async Task Control()
@@ -49,7 +51,7 @@ public class Controller(Valve hotValve, Valve coldValve, float recommendedTemp)
                 hotValve.Open = Math.Min(1f, hotValve.Open + 0.05f);
             }
             
-            Console.WriteLine($"Target: {recommendedTemp}°C | Out: {_outTemp:F1}°C | Error: {Math.Abs(recommendedTemp - _outTemp):F1}°C");
+            Console.WriteLine($"Target: {recommendedTemp}°C | Out: {_outTemp:F1}°C | Error: {Math.Abs(recommendedTemp - _outTemp):F1}°C | HP: {hotValve.Pressure:F2} CP: {coldValve.Pressure:F2}");
         }
     }
 
@@ -59,5 +61,8 @@ public class Controller(Valve hotValve, Valve coldValve, float recommendedTemp)
         
         hotValve.Temperature = _baseHotTemp + (float)(_random.NextDouble() * 6 - 3);
         coldValve.Temperature = _baseColdTemp + (float)(_random.NextDouble() * 6 - 3);
+
+        hotValve.Pressure = 1.0f + (float)(_random.NextDouble() * 0.4 - 0.2);
+        coldValve.Pressure = 1.0f + (float)(_random.NextDouble() * 0.4 - 0.2);
     }
 }
